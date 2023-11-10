@@ -27,7 +27,10 @@ class AudioExtractorView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request, format=None):
-        return Response('nice')
+        tasks = AudioExtractionTask.objects.all()
+        serializer = AudioExtractionTaskSerializer(tasks, many=True)
+        
+        return Response(serializer.data)
 
     def post(self, request, format=None):
         serializer = VideoSerializer(data=request.data)
