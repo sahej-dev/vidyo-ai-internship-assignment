@@ -1,4 +1,6 @@
 import os
+import random
+import string
 
 from django.core.files import File
 from django.conf import settings
@@ -15,6 +17,7 @@ from resources.serializers import VideoSerializer, AudioSerailizer
 from .models import VideoWatermarkingTask, AudioExtractionTask
 from .serializers import VideoWatermarkingTaskSerializer, AudioExtractionTaskSerializer
 
+from ffmpeg.watermarker import overlay_image
 from ffmpeg.audio_extractor import extract_audio
 from utils.file_utils import (
     get_audio_upload_path,
@@ -23,13 +26,66 @@ from utils.file_utils import (
     create_folder_if_not_exits
 )
 
+class VideoWatermarkerView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get(self, request, format=None):
+        tasks = VideoWatermarkingTask.objects.all()
+        serializer = VideoWatermarkingTaskSerializer(tasks, many=True)
+        
+        task = tasks[0]
+
+        og_video_path = task.video.file.path
+        new_video_name, extension = os.path.splitext(og_video_path)
+        random_suffix = random_chars = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
+        new_video_path = f"{new_video_name}_watermarked_{random_suffix}{extension}"
+
+        print(task.image_file.path)
+        overlay_image(og_video_path, task.image_file.path, new_video_path, (task.x_pos, task.y_pos), scale=2)
+
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = VideoWatermarkingTaskSerializer(data=request.data)
+        if serializer.is_valid():
+            task = serializer.save()
+
+            task.schedule_time = timezone.now()
+            task.save()
+            og_video_path = task.video.file.path
+            new_video_name, extension = os.path.splitext(og_video_path)
+            random_suffix = random_chars = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
+            new_video_path = f"{new_video_name}_watermarked_{random_suffix}{extension}"
+
+            overlay_image(og_video_path, task.image_file.path, new_video_path, (task.x_pos, task.y_pos), scale=2)
+            return Response(VideoWatermarkingTaskSerializer(task).data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class VideoWatermarkerDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return VideoWatermarkingTask.objects.get(pk=pk)
+        except VideoWatermarkingTask.DoesNotExist:
+            return None
+
+    def get(self, request, pk, format=None):
+        task = self.get_object(pk)
+        if task is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = VideoWatermarkingTaskSerializer(task)
+        
+        return Response(serializer.data)
+
 class AudioExtractorView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request, format=None):
         tasks = AudioExtractionTask.objects.all()
         serializer = AudioExtractionTaskSerializer(tasks, many=True)
-        
+
         return Response(serializer.data)
 
     def post(self, request, format=None):
