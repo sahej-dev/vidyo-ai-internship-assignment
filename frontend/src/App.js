@@ -1,56 +1,86 @@
+import { useState } from "react";
+
+import VideoPlayer from "./components/VideoPlayer";
+import LoadingIndicator from "./components/LoadingIndicator";
+import { downloadFile } from "./utils";
+
 function App() {
+  const [chosenFile, setChosenFilePath] = useState(null);
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+  const [error, setError] = useState(null);
+
+  function onDownloadAudioSubmit(event) {
+    event.preventDefault();
+
+    if (!chosenFile) {
+      setError("A file must be chosen!");
+      return;
+    }
+
+    setError(null);
+
+    let data = new FormData();
+    data.append("title", chosenFile.name);
+    data.append("file", chosenFile);
+
+    setIsProcessingAudio(true);
+
+    fetch("http://127.0.0.1:8000/api/audio-tasks/", {
+      method: "POST",
+      body: data,
+    })
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+        downloadFile(data.audio_file.file);
+      })
+      .catch((error) => {
+        console.error("Error:::", error);
+      })
+      .finally(() => {
+        setIsProcessingAudio(false);
+      });
+  }
+
+  let videoPlayer = <p>Please select a video file!</p>;
+
+  if (chosenFile) {
+    const fileUrl = URL.createObjectURL(chosenFile);
+    console.log(fileUrl);
+    videoPlayer = <VideoPlayer videoUrl={fileUrl} />;
+  }
+
   return (
-    <div className="App">
-      <div className="container">
-        <div className="row">
-          <div className="col-md-8">
-            <p className="text-muted my-3">
-              <small>
-                Open Developer Console for information about responses.
-              </small>
-            </p>
-            <h1 className="my-3">1. Log in</h1>
-
-            <h1 className="my-3">2. Upload an avatar</h1>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                let input = document.getElementById("uploaded_file");
-
-                let data = new FormData();
-                data.append("title", "test video nice");
-                data.append("file", input.files[0]);
-
-                console.log("DATA:::", data);
-
-                fetch("http://127.0.0.1:8000/api/audio-tasks/", {
-                  method: "POST",
-                  body: data,
-                })
-                  .then((response) => {
-                    return response.json();
-                  })
-                  .then((data) => {
-                    console.log(data);
-                  })
-                  .catch((error) => {
-                    console.error("Error:::", error);
-                  });
-              }}
-            >
-              <div>
-                <label htmlFor="uploaded_file">
-                  Choose an image for your avatar
-                </label>
-                <input type="file" id="uploaded_file" />
-              </div>
-              <button type="submit" className="btn btn-primary">
-                Upload
-              </button>
-            </form>
-          </div>
+    <div className="container m-auto grid gap-y-4">
+      {error && <p className="text-error">Error: {error}</p>}
+      {videoPlayer}
+      <form className="grid gap-y-4">
+        <div>
+          <input
+            type="file"
+            accept="video/*"
+            className="file-input file-input-bordered file-input-primary w-full max-w-sm"
+            onChange={(e) => {
+              setChosenFilePath(e.target.files[0]);
+            }}
+          />
         </div>
-      </div>
+
+        <button
+          onClick={onDownloadAudioSubmit}
+          className="btn btn-primary max-w-xs"
+        >
+          {isProcessingAudio ? (
+            <>
+              Processing... <LoadingIndicator />
+            </>
+          ) : (
+            <>Download Audio</>
+          )}
+        </button>
+      </form>
     </div>
   );
 }

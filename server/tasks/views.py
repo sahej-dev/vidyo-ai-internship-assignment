@@ -13,6 +13,7 @@ from resources.models import Video, Audio
 from resources.serializers import VideoSerializer, AudioSerailizer
 
 from .models import VideoWatermarkingTask, AudioExtractionTask
+from .serializers import VideoWatermarkingTaskSerializer, AudioExtractionTaskSerializer
 
 from ffmpeg.audio_extractor import extract_audio
 from utils.file_utils import (
@@ -50,7 +51,9 @@ class AudioExtractorView(APIView):
             task.audio_file = audio
             task.complete_time = timezone.now()
             task.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+
+            task_serializer = AudioExtractionTaskSerializer(task)
+            return Response(task_serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
