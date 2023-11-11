@@ -25,7 +25,7 @@ npm run start
 
 #### Backend
 
-The backend server runs on port 8000.
+The backend **Django** server runs on port 8000.
 
 ```sh
 cd <project_dir>/server
