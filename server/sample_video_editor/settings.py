@@ -47,7 +47,6 @@ INSTALLED_APPS = [
 
     # Local
     "accounts.apps.AccountsConfig",
-    "apis.apps.ApisConfig",
     "resources.apps.ResourcesConfig",
     "tasks.apps.TasksConfig",
 ]
