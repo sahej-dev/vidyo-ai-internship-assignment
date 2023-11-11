@@ -63,7 +63,7 @@ docker-compose up
 
 Once done visit [localhost:8000/admin](http://localhost:8000/admin) and you can login with the superuser account just created. I recommend using it to explore different models I have created in this assignment.
 
-Now you can go to [localhost:3000](http://localhost:3000) to test the project.
+Now you can go to [localhost:3000](http://localhost:3000) to test the project. I have included sample media files in the `sample_files/` directory.
 
 ## Tasks Performed
 
