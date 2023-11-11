@@ -156,13 +156,14 @@ function sketch(
 
   p.mouseReleased = function () {
     if (isDragging) {
-      console.log(watermarkPos.x / p.min(video.width, p.width));
-
+      const vidSize = calculateVidSize(p, video);
+      const vidPos = calculateVidLocation(p, vidSize);
+      console.log((watermarkPos.x - vidPos.x) / p.min(vidSize.width, p.width));
       setWatermarkState((prevState) => {
         return {
           ...prevState,
-          x: watermarkPos.x / p.min(video.width, p.width),
-          y: watermarkPos.y / p.min(video.height, p.height),
+          x: (watermarkPos.x - vidPos.x) / p.min(vidSize.width, p.width),
+          y: (watermarkPos.y - vidPos.y) / p.min(video.height, p.height),
         };
       });
     }
@@ -238,13 +239,14 @@ function initWatermarkImageInput(
 
   let imageInput = p.createFileInput((file) => {
     p.createImg(file.data, "watermark image", "", (p5Img) => {
-      console.log("scale", p5Img.width / p.min(video.width, p.width));
+      const vidSize = calculateVidSize(p, video);
+      console.log("scale", p5Img.width / p.min(vidSize.width, p.width));
       setWatermarkImage(p5Img);
       setWatermarkState((prevState) => {
         return {
           ...prevState,
           fileData: file.data,
-          scale: p5Img.width / p.min(video.width, p.width),
+          scale: p5Img.width / p.min(vidSize.width, p.width),
         };
       });
     });
@@ -292,7 +294,10 @@ function preProcessWatermark(
   watermarkPos,
   watermarkState
 ) {
-  watermarkPos.x = watermarkState.x * p.min(video.width, p.width);
-  watermarkPos.y = watermarkState.y * p.min(video.height, p.height);
+  const vidSize = calculateVidSize(p, video);
+  const vidPos = calculateVidLocation(p, vidSize);
+  watermarkPos.x = watermarkState.x * p.min(vidSize.width, p.width) + vidPos.x;
+  watermarkPos.y =
+    watermarkState.y * p.min(vidSize.height, p.height) + vidPos.y;
   watermarkImage.hide();
 }
