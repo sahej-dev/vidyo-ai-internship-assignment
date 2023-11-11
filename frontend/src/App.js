@@ -2,11 +2,16 @@ import { useState } from "react";
 
 import VideoEditor from "./components/VideoEditor";
 import LoadingIndicator from "./components/LoadingIndicator";
-import { downloadFile, retryUntilJobComplete } from "./utils";
+import {
+  downloadFile,
+  getDurationString,
+  retryUntilJobComplete,
+  updateVideoFileDuration,
+} from "./utils";
 import Constants from "./constants";
 
 function App() {
-  const [chosenFile, setChosenFilePath] = useState(null);
+  const [chosenFile, setChosenFile] = useState(null);
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [isProcessingWatermark, setIsProcessingWatermark] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -19,9 +24,11 @@ function App() {
     fileData: null,
   });
   const [watermarkJob, setWatermarkJob] = useState(null);
+  const [duration, setDuration] = useState(null);
 
   function onChosenVideoChange(e) {
-    setChosenFilePath(e.target.files[0]);
+    console.log(e.target.files[0]);
+    setChosenFile(e.target.files[0]);
     setIsProcessingWatermark(false);
     setIsUploading(false);
     setIsProcessingAudio(false);
@@ -140,6 +147,8 @@ function App() {
 
   if (chosenFile) {
     const fileUrl = URL.createObjectURL(chosenFile);
+
+    if (!chosenFile.duration) updateVideoFileDuration(chosenFile, setDuration);
     // console.log(fileUrl);
     videoEditor = (
       <VideoEditor
@@ -153,6 +162,12 @@ function App() {
   return (
     <div className="container m-auto grid gap-y-4">
       {videoEditor}
+      {chosenFile && (
+        <div className="grid grid-cols-4">
+          <h2 className="text-lg col-span-3">{chosenFile.name}</h2>
+          <p>{getDurationString(duration)}</p>
+        </div>
+      )}
       <form className="grid gap-y-4">
         <div className="flex-row">
           <input

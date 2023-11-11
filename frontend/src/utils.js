@@ -31,6 +31,33 @@ export async function retryUntilJobComplete(route, cb) {
   return f();
 }
 
+export function updateVideoFileDuration(file, setDuration) {
+  const vid = document.createElement("video");
+  vid.src = URL.createObjectURL(file);
+  vid.ondurationchange = function () {
+    setDuration(vid.duration);
+  };
+}
+
+export function getDurationString(durationInSeconds) {
+  return require("humanize-duration")(durationInSeconds * 1000, {
+    round: true,
+    language: "shortEn",
+    languages: {
+      shortEn: {
+        y: () => "y",
+        mo: () => "mo",
+        w: () => "w",
+        d: () => "d",
+        h: () => "h",
+        m: () => "m",
+        s: () => "s",
+        ms: () => "ms",
+      },
+    },
+  });
+}
+
 export function calculateVidSize(p, video) {
   const vidAspectRatio = video.width / video.height;
   const canvasAspectRatio = p.width / p.height;
