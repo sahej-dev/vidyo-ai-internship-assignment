@@ -9,12 +9,18 @@ ENV PYTHONUNBUFFERED 1
 # Set work directory
 WORKDIR /code
 
-# Install dependencies
+# Install  ffmpeg
+RUN apt-get update && \
+    apt-get install -y ffmpeg
+
+# Copy requirements and install dependencies
 COPY ./requirements.txt .
 RUN pip install -r requirements.txt
 
-RUN apt update
-RUN apt install ffmpeg -y
-
 # Copy project
 COPY . .
+
+# Cleanup
+RUN apt-get remove --purge -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
