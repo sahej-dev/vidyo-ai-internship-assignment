@@ -66,6 +66,7 @@ Now you can go to [localhost:3000](http://localhost:3000) to test the project.
 - Django Rest Framework has been used to develop REST API endpoints.
 - You can view the api schema at [localhost:8000/swagger](http://localhost:8000/api/schema/swagger/), or [localhost:8000/redoc](http://localhost:8000/api/schema/redoc/)
 - Inheritance has been used (in addition to general use of inheritance in Django) wherever found beneficial. For instance, both `VideoWatermarkingTask` and `AudioExtractionTask` models inherit from an abstract `Task` model.
+- I have strived to maintain a clean and consistent folder structure. Of course, Django defaults helped in this endeavor.
 - A POST request at `/api/audio-tasks/`, and at `/api/watermark-tasks/` does audio extraction and watermarking respetively. Both the operations use FFMPEG.
 
 ### Containerization Tasks
