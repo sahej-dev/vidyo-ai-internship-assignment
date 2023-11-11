@@ -78,7 +78,11 @@ Four docker containers are run by the compose script:
 - `celery`: This runs the background processing workers
 - `redis`: This is a dependency of celery. It is used as a queue for pending jobs untill they are consumed by a worker.
 
-I have tried to optimize the size of the final docker image (~1.4GB -> ~650MB) by removing packages and lists that were only needed for installation of dependencies.
+### Bonus Tasks
+
+- I have optimized the size of the final docker image (~1.4GB -> ~650MB) by removing packages and lists that were only needed for installation of dependencies.
+- Edge cases like correctly watermarking video of different aspect ratios has been handled.
+- Integration of Celery allows for distribution of background tasks on multiple workers (threads). So this should make the service vertically scalable.
 
 ### Frontend Tasks
 
