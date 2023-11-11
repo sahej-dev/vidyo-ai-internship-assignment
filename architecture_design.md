@@ -1,6 +1,6 @@
 # Alternate Architecture Design
 
-I recommend reading the [Readme.md](./Readme.md) file before this one to understand the implemented architecture of the project, because I make comparisons to that of the architecture proposed in this document.
+I ask to please read the [Readme.md](./Readme.md) file before this one to understand the implemented architecture of the project, because I make comparisons to that of the architecture proposed in this document.
 
 The proposed architecture focuses on high availability of the entire system.
 
