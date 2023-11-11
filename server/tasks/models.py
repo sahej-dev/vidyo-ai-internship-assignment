@@ -2,6 +2,8 @@ import uuid
 
 from django.db import models
 
+from django_celery_results.models import TaskResult
+
 from resources.models import Video, Audio
 
 class Task(models.Model):
@@ -9,6 +11,7 @@ class Task(models.Model):
     video = models.ForeignKey(Video, on_delete=models.CASCADE)
     schedule_time = models.DateTimeField(null=True, blank=True)
     complete_time = models.DateTimeField(null=True, blank=True)
+    celery_task_id = models.UUIDField(null=True, blank=True)
 
     class Meta:
         abstract = True

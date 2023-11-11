@@ -153,6 +153,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 CORS_ALLOWED_ORIGINS = (
     "http://localhost:3000",
+    "http://localhost:3001",
     "http://localhost:8000",
 )
 
@@ -169,3 +170,4 @@ SPECTACULAR_SETTINGS = {
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_CACHE_BACKEND = 'django-cache'
+CELERY_RESULT_EXTENDED = True

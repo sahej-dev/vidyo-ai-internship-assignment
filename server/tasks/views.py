@@ -9,7 +9,9 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
+from django_celery_results.models import TaskResult
+from celery.result import AsyncResult
 
 from resources.models import Video, Audio
 from resources.serializers import VideoSerializer, AudioSerailizer
@@ -43,36 +45,30 @@ class VideoWatermarkerView(APIView):
             task = serializer.save()
 
             task.schedule_time = timezone.now()
-            task.save()
 
             og_video_path = task.video.file.path
             new_video_name, extension = os.path.splitext(og_video_path)
             random_suffix  = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
             new_video_path = f"{new_video_name}_watermarked_{random_suffix}{extension}"
 
-            task_overlay_image.delay(og_video_path, task.image_file.path, new_video_path, (task.x_pos, task.y_pos), task.id, scale=task.scale)
+            res = task_overlay_image.delay(og_video_path, task.image_file.path, new_video_path, (task.x_pos, task.y_pos), task.id, scale=task.scale)
+
+            task.celery_task_id = res.id
+            task.save()
             return Response(VideoWatermarkingTaskSerializer(task).data, status=status.HTTP_200_OK)
         else:
             print(serializer.errors)
             return Response(request.data, status=status.HTTP_400_BAD_REQUEST)
     
 
-class VideoWatermarkerDetailView(APIView):
-    def get_object(self, pk):
-        try:
-            return VideoWatermarkingTask.objects.get(pk=pk)
-        except VideoWatermarkingTask.DoesNotExist:
-            return None
+class VideoWatermarkerDetailView(generics.RetrieveDestroyAPIView):
+    serializer_class = VideoWatermarkingTaskSerializer
+    queryset = VideoWatermarkingTask.objects.all()
 
-    def get(self, request, pk, format=None):
-        task = self.get_object(pk)
-        if task is None:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = VideoWatermarkingTaskSerializer(task)
-        
-        return Response(serializer.data)
-
+    def perform_destroy(self, instance):
+        AsyncResult(instance.celery_task_id).revoke(terminate=True)
+        instance.delete()
+   
 class AudioExtractorView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
