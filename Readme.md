@@ -6,6 +6,8 @@ Thanks for the amazing assignment. I had quite a lot of fun doing it.
 
 ### Dependencies
 
+The following are required to be installed as pre-requisites. The rest of the installation instructions assume the following tools are correctly setup and running on your machine.
+
 - React, node, npm
 - Docker
 
@@ -33,7 +35,7 @@ docker-compose up
 This might take a while :). Once the containers are up, in another terminal apply migrations and collect static files.
 
 ```sh
-docker-compose exec web python manage.py collectstatic # enter yes if prompted to overwrite existing files
+docker-compose exec web python manage.py collectstatic # enter "yes" if prompted to overwrite existing files
 
 docker-compose exec web python manage.py migrate
 ```
