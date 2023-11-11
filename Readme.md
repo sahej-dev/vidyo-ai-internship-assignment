@@ -2,6 +2,15 @@
 
 Thanks for the amazing assignment. I had quite a lot of fun doing it.
 
+## Technologies Used
+
+- Backend: Django
+- Frontend: React (CRA)
+- Database Engine: PostgreSQL
+- Video handling: FFMPEG
+- Background tasks: Celery
+- Containerization: Docker
+
 ## Installation Instructions
 
 ### Dependencies
