@@ -22,3 +22,7 @@ class AudioExtractionTaskSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = AudioExtractionTask
+
+class AudioExtractionTaskPkSerializer(AudioExtractionTaskSerializer):
+    video = serializers.PrimaryKeyRelatedField(queryset=Video.objects.all())
+    audio_file = AudioSerailizer(required=False)

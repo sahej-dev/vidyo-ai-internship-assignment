@@ -23,6 +23,7 @@ function NewVideoPage() {
     scale: 1,
     fileData: null,
   });
+  const [audioJob, setAudioJob] = useState(null);
   const [watermarkJob, setWatermarkJob] = useState(null);
   const [duration, setDuration] = useState(null);
 
@@ -76,8 +77,8 @@ function NewVideoPage() {
     event.preventDefault();
 
     let data = new FormData();
-    data.append("title", chosenFile.name);
-    data.append("file", chosenFile);
+    data.append("video", video.id);
+    // data.append("file", chosenFile);
 
     setIsProcessingAudio(true);
 
@@ -90,13 +91,19 @@ function NewVideoPage() {
       })
       .then((data) => {
         console.log(data);
-        downloadFile(data.audio_file.file);
+        retryUntilJobComplete(`/api/audio-tasks/${data.id}`, (data, error) => {
+          if (error) {
+            console.error(error);
+          } else {
+            setAudioJob(data);
+          }
+
+          setIsProcessingAudio(false);
+        });
       })
       .catch((error) => {
-        console.error("Error:", error);
-      })
-      .finally(() => {
         setIsProcessingAudio(false);
+        console.error("Error:", error);
       });
   }
 
@@ -200,7 +207,7 @@ function NewVideoPage() {
           )}
         </div>
         <div id="buttons" className="grid grid-cols-3 items-center gap-4">
-          {chosenFile && video ? (
+          {!audioJob && chosenFile && video ? (
             <button
               onClick={onDownloadAudioSubmit}
               className="btn btn-primary max-w-xs"
@@ -215,6 +222,16 @@ function NewVideoPage() {
             </button>
           ) : (
             <></>
+          )}
+          {audioJob && (
+            <a
+              className="btn btn-primary"
+              href={audioJob.audio_file.file}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Play Extracted Audio
+            </a>
           )}
           {chosenFile && video && !watermarkState.fileData ? (
             <div

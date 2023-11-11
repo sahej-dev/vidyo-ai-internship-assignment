@@ -17,8 +17,13 @@ from resources.models import Video, Audio
 from resources.serializers import VideoSerializer, AudioSerailizer
 
 from .models import VideoWatermarkingTask, AudioExtractionTask
-from .serializers import (VideoWatermarkingTaskSerializer, VideoWatermarkingTaskPkSerializer, AudioExtractionTaskSerializer)
-from .tasks import task_overlay_image
+from .serializers import (
+    VideoWatermarkingTaskSerializer,
+    VideoWatermarkingTaskPkSerializer,
+    AudioExtractionTaskSerializer,
+    AudioExtractionTaskPkSerializer
+)
+from .tasks import task_overlay_image, task_extract_audio
 
 from ffmpeg.watermarker import overlay_image
 from ffmpeg.audio_extractor import extract_audio
@@ -79,26 +84,20 @@ class AudioExtractorView(APIView):
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        serializer = VideoSerializer(data=request.data)
+        serializer = AudioExtractionTaskPkSerializer(data=request.data)
         if serializer.is_valid():
-            video = serializer.save()
-            task = AudioExtractionTask(video=video, schedule_time=timezone.now())
+            task = serializer.save()
+            task.schedule_time = timezone.now()
 
             create_folder_if_not_exits(os.path.join(settings.MEDIA_ROOT, 'audios/'))
 
-            video_file_path = video.file.path
-            audio_upload_relative_path = get_audio_upload_path(None, video.get_base_file_name())
+            video_file_path = task.video.file.path
+            audio_upload_relative_path = get_audio_upload_path(None, task.video.get_base_file_name())
             audio_upload_relative_path = change_extension(audio_upload_relative_path, '.mp3')
             audio_file_path = get_media_file_absolute_path(audio_upload_relative_path)
 
-            extract_audio(video_file_path, audio_file_path)
-
-            audio = Audio(video=video)
-            audio.file.name = audio_upload_relative_path
-            audio.save()
-            
-            task.audio_file = audio
-            task.complete_time = timezone.now()
+            res = task_extract_audio.delay(video_file_path, audio_file_path, audio_upload_relative_path, task.id);
+            task.celery_task_id = res.id
             task.save()
 
             task_serializer = AudioExtractionTaskSerializer(task)
@@ -106,3 +105,10 @@ class AudioExtractorView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+class AudioExtractorDetailView(generics.RetrieveDestroyAPIView):
+    serializer_class = AudioExtractionTaskSerializer
+    queryset = AudioExtractionTask.objects.all()
+
+    def perform_destroy(self, instance):
+        AsyncResult(instance.celery_task_id).revoke(terminate=True)
+        instance.delete()

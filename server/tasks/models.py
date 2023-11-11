@@ -17,7 +17,7 @@ class Task(models.Model):
         abstract = True
 
 class AudioExtractionTask(Task):
-    audio_file = models.ForeignKey(Audio, on_delete=models.CASCADE)
+    audio_file = models.ForeignKey(Audio, on_delete=models.CASCADE, null=True, blank=True)
 
 class VideoWatermarkingTask(Task):
     watermarked_video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='watermark_tasks', null=True, blank=True)
