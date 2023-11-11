@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     'django_celery_results',
+    "drf_spectacular",
 
     # Local
     "accounts.apps.AccountsConfig",
@@ -154,6 +155,16 @@ CORS_ALLOWED_ORIGINS = (
     "http://localhost:3000",
     "http://localhost:8000",
 )
+
+REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Vidyo AI Recruitment Project API",
+    "DESCRIPTION": "An mvp that does audio extraction and watermark placement on video files",
+    "VERSION": "1.0.0",
+}
 
 CELERY_BROKER_URL = 'redis://redis:6379/0'
 CELERY_RESULT_BACKEND = 'django-db'
