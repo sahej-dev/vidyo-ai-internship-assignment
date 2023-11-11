@@ -62,11 +62,11 @@ Now you can go to [localhost:3000](http://localhost:3000) to test the project.
 
 - A dockerized PostgreSQL database has been integrated.
 - Four core models have been created: `Video`, `Audio`, `VideoWatermarkingTask`, `AudioExtractionTask` ([ERD here](./er_diagram.pdf)).
-- [Celery](https://docs.celeryq.dev/en/stable/index.html) is used for scheduling jobs as background tasks.
+- [Celery](https://docs.celeryq.dev/en/stable/index.html) is used as a job-queue for scheduling jobs for concurrency on background workers.
 - Django Rest Framework has been used to develop REST API endpoints.
 - You can view the api schema at [localhost:8000/swagger](http://localhost:8000/api/schema/swagger/), or [localhost:8000/redoc](http://localhost:8000/api/schema/redoc/)
 - Inheritance has been used (in addition to general use of inheritance in Django) wherever found beneficial. For instance, both `VideoWatermarkingTask` and `AudioExtractionTask` models inherit from an abstract `Task` model.
-- I have strived to maintain a clean and consistent folder structure. Of course, Django defaults helped in this endeavor.
+- I have strived, as I always do, to maintain a clean and consistent coding style, and folder structure. Of course, Django defaults help in this endeavor.
 - A POST request at `/api/audio-tasks/`, and at `/api/watermark-tasks/` does audio extraction and watermarking respetively. Both the operations use FFMPEG.
 
 ### Containerization Tasks
@@ -82,7 +82,9 @@ Four docker containers are run by the compose script:
 
 - I have optimized the size of the final docker image (~1.4GB -> ~650MB) by removing packages and lists that were only needed for installation of dependencies.
 - Edge cases like correctly watermarking video of different aspect ratios has been handled.
-- Integration of Celery allows for distribution of background tasks on multiple workers (threads). So this should make the service vertically scalable.
+- Integration of Celery allows for distribution of background tasks on multiple workers. This is done by running all ffmpeg processing only as celery tasks.
+- Celery workers can be run on separate machine, so this should be highly scalable. (I am cautious in making this claim, as I first heard of Celery 4 days ago. However my nascent research on it supports this claim.)
+- I have also thought of a different scalable architecture that you can read about in [this architecture_design.md file](./architecture_design.md).
 
 ### Frontend Tasks
 
