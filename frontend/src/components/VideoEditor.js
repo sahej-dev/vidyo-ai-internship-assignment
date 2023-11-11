@@ -10,26 +10,22 @@ export default function VideoEditor({
 }) {
   const p5ContainerRef = useRef();
   const [watermarkImage, setWatermarkImage] = useState(null);
-  // const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  // const [video, setVideo] = useState(null);
 
   useEffect(() => {
     const p5Instance = new p5((p) => {
-      // console.log(video);
+      if (!watermarkState.file) {
+        setWatermarkImage(null);
+      }
+
       const v = p.createVideo(videoUrl, () => {
         v.hide();
       });
-      // if (!deepCompare(v, video)) setVideo(v);
 
-      // if (video)
       sketch(p, videoUrl, {
-        // video,
         watermarkState,
         setWatermarkState,
         watermarkImage,
         setWatermarkImage,
-        // isVideoPlaying,
-        // setIsVideoPlaying,
       });
     }, p5ContainerRef.current);
 
@@ -42,8 +38,6 @@ export default function VideoEditor({
     watermarkState,
     setWatermarkState,
     watermarkImage,
-    // isVideoPlaying,
-    // setIsVideoPlaying,
   ]);
 
   return <div className="inline flex-row" ref={p5ContainerRef} />;
@@ -52,20 +46,11 @@ export default function VideoEditor({
 function sketch(
   p,
   videoUrl,
-  {
-    // video,
-    watermarkState,
-    setWatermarkState,
-    watermarkImage,
-    setWatermarkImage,
-    // isVideoPlaying,
-    // setIsVideoPlaying,
-  }
+  { watermarkState, setWatermarkState, watermarkImage, setWatermarkImage }
 ) {
   let playIcon;
   let pauseIcon;
   let video;
-  // let watermarkImage;
 
   let isVideoPlaying = false;
   let isDragging = false;
@@ -80,9 +65,6 @@ function sketch(
     cy: 0,
     bottomMargin: 12,
   };
-  // let btnRadius;
-  // let btnCx;
-  // let btnCy;
 
   const btnColor = p.color(79, 27, 190, 200);
   const btnHoverColor = p.color(79, 27, 190);
@@ -165,7 +147,6 @@ function sketch(
   };
 
   p.mouseClicked = function () {
-    // console.log("VID", video);
     handlePlayPauseClicked(btn, video);
   };
 
@@ -205,19 +186,14 @@ function sketch(
 
   function handlePlayPauseClicked({ cx, cy, radius }, video) {
     const d = p.dist(p.mouseX, p.mouseY, cx, cy);
-    // console.log(cx, cy, radius, d);
 
     if (d < radius && video) {
-      // console.log(isVideoPlaying);
       if (isVideoPlaying) {
         video.pause();
       } else {
         video.play();
       }
       isVideoPlaying = !isVideoPlaying;
-      // setIsVideoPlaying((prevState) => {
-      //   return !prevState;
-      // });
     }
   }
 
@@ -247,7 +223,18 @@ function initWatermarkImageInput(
   video
 ) {
   const parentEle = document.getElementById("watermarkUpload");
-  if (!parentEle) return;
+  if (!parentEle) {
+    if (watermarkImage) {
+      preProcessWatermark(
+        p,
+        video,
+        watermarkImage,
+        watermarkPos,
+        watermarkState
+      );
+    }
+    return;
+  }
 
   let imageInput = p.createFileInput((file) => {
     p.createImg(file.data, "watermark image", "", (p5Img) => {
@@ -273,12 +260,7 @@ function initWatermarkImageInput(
       });
     };
   } else {
-    watermarkImage = p.createImg(watermarkState.fileData, "watermark image");
-    console.log("loaded", p.min(video.width, p.width));
-    console.log("loaded", watermarkState.x);
-    watermarkPos.x = watermarkState.x * p.min(video.width, p.width);
-    watermarkPos.y = watermarkState.y * p.min(video.height, p.height);
-    watermarkImage.hide();
+    preProcessWatermark(p, video, watermarkImage, watermarkPos, watermarkState);
   }
   imageInput.parent("watermarkUpload");
   imageInput.elt.accept = "image/*";
@@ -301,4 +283,16 @@ function drawVideo(p, video) {
 
 function isHoveringRect(p, x, y, w, h) {
   return x < p.mouseX && p.mouseX < x + w && y < p.mouseY && p.mouseY < y + h;
+}
+
+function preProcessWatermark(
+  p,
+  video,
+  watermarkImage,
+  watermarkPos,
+  watermarkState
+) {
+  watermarkPos.x = watermarkState.x * p.min(video.width, p.width);
+  watermarkPos.y = watermarkState.y * p.min(video.height, p.height);
+  watermarkImage.hide();
 }

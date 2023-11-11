@@ -7,6 +7,30 @@ export function downloadFile(relativePath) {
   require("downloadjs")(fileUrl);
 }
 
+export async function retryUntilJobComplete(route, cb) {
+  const f = () => {
+    console.log("calling f");
+    fetch(Constants.backend_base + route)
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        if (!data.complete_time) {
+          setTimeout(f, 5000);
+        } else {
+          console.log("f result");
+          cb(data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        cb(null, error);
+      });
+  };
+
+  return f();
+}
+
 export function calculateVidSize(p, video) {
   const vidAspectRatio = video.width / video.height;
   const canvasAspectRatio = p.width / p.height;

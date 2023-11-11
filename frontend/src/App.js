@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import VideoEditor from "./components/VideoEditor";
 import LoadingIndicator from "./components/LoadingIndicator";
-import { downloadFile } from "./utils";
+import { downloadFile, retryUntilJobComplete } from "./utils";
 import Constants from "./constants";
 
 function App() {
@@ -11,7 +11,6 @@ function App() {
   const [isProcessingWatermark, setIsProcessingWatermark] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [video, setVideo] = useState(null);
-  // const [watermarkFile, setWatermarkFile] = useState(null);
   const [watermarkState, setWatermarkState] = useState({
     file: null,
     x: 0.5,
@@ -19,6 +18,23 @@ function App() {
     scale: 1,
     fileData: null,
   });
+  const [watermarkJob, setWatermarkJob] = useState(null);
+
+  function onChosenVideoChange(e) {
+    setChosenFilePath(e.target.files[0]);
+    setIsProcessingWatermark(false);
+    setIsUploading(false);
+    setIsProcessingAudio(false);
+    setVideo(null);
+    setWatermarkState({
+      file: null,
+      x: 0.5,
+      y: 0.5,
+      scale: 1,
+      fileData: null,
+    });
+    setWatermarkJob(null);
+  }
 
   function uploadVideo(event) {
     event.preventDefault();
@@ -101,7 +117,18 @@ function App() {
       })
       .then((data) => {
         console.log(data);
-        // downloadFile(data.audio_file.file);
+        retryUntilJobComplete(
+          `/api/watermark-tasks/${data.id}`,
+          (data, error) => {
+            if (error) {
+              console.error(error);
+            } else {
+              setWatermarkJob(data);
+            }
+
+            setIsProcessingWatermark(false);
+          }
+        );
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -132,9 +159,7 @@ function App() {
             type="file"
             accept="video/*"
             className="file-input file-input-bordered file-input-primary w-full max-w-sm"
-            onChange={(e) => {
-              setChosenFilePath(e.target.files[0]);
-            }}
+            onChange={onChosenVideoChange}
           />
           {chosenFile ? (
             <button
@@ -176,7 +201,7 @@ function App() {
           ) : (
             <></>
           )}
-          {chosenFile && video ? (
+          {chosenFile && video && !watermarkState.fileData ? (
             <div
               id="watermarkUpload"
               className="form-control inline-block max-w-xs"
@@ -192,7 +217,7 @@ function App() {
           ) : (
             <></>
           )}
-          {chosenFile && watermarkState.file && video ? (
+          {!watermarkJob && chosenFile && watermarkState.file && video ? (
             <button
               onClick={onWatermarkSubmit}
               className="btn btn-primary max-w-xs"
@@ -207,6 +232,16 @@ function App() {
             </button>
           ) : (
             <></>
+          )}
+          {watermarkJob && (
+            <a
+              className="btn btn-primary"
+              href={watermarkJob.watermarked_video.file}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View watermarked video
+            </a>
           )}
         </div>
       </form>
