@@ -3,7 +3,6 @@ import { useState } from "react";
 import VideoEditor from "./components/VideoEditor";
 import LoadingIndicator from "./components/LoadingIndicator";
 import {
-  downloadFile,
   getDurationString,
   retryUntilJobComplete,
   updateVideoFileDuration,
@@ -30,9 +29,7 @@ function NewVideoPage() {
   function onChosenVideoChange(e) {
     console.log(e.target.files[0]);
     setChosenFile(e.target.files[0]);
-    setIsProcessingWatermark(false);
     setIsUploading(false);
-    setIsProcessingAudio(false);
     setVideo(null);
     setWatermarkState({
       file: null,
@@ -41,7 +38,10 @@ function NewVideoPage() {
       scale: 1,
       fileData: null,
     });
+    setIsProcessingWatermark(false);
     setWatermarkJob(null);
+    setIsProcessingAudio(false);
+    setAudioJob(null);
   }
 
   function uploadVideo(event) {
@@ -76,9 +76,10 @@ function NewVideoPage() {
   function onDownloadAudioSubmit(event) {
     event.preventDefault();
 
+    if (isProcessingAudio) return;
+
     let data = new FormData();
     data.append("video", video.id);
-    // data.append("file", chosenFile);
 
     setIsProcessingAudio(true);
 
@@ -109,6 +110,8 @@ function NewVideoPage() {
 
   function onWatermarkSubmit(event) {
     event.preventDefault();
+
+    if (isProcessingWatermark) return;
 
     let data = new FormData();
 
@@ -277,6 +280,11 @@ function NewVideoPage() {
           )}
         </div>
       </form>
+      {watermarkState.file && (
+        <p className="text-lg">
+          Tip: You can move the watermark around by dragging it!
+        </p>
+      )}
     </div>
   );
 }
