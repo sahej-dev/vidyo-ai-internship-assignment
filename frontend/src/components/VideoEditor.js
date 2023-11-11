@@ -99,7 +99,7 @@ function sketch(
   };
 
   p.draw = function () {
-    p.background(255);
+    p.background(0);
     p.ellipseMode(p.CENTER);
 
     drawVideo(p, video);
