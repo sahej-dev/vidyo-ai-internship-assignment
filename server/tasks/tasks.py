@@ -2,7 +2,7 @@ from django.utils import timezone
 
 from celery import shared_task
 
-from .models import Video
+from resources.models import Video
 from .models import VideoWatermarkingTask
 
 from ffmpeg.watermarker import overlay_image
