@@ -250,29 +250,17 @@ function initWatermarkImageInput(
   if (!parentEle) return;
 
   let imageInput = p.createFileInput((file) => {
-    const img = p.createImg(file.data, "watermark image");
-    setWatermarkImage(img);
-
-    if (img) {
-      console.log("scale", img.width / p.min(video.width, p.width));
+    p.createImg(file.data, "watermark image", "", (p5Img) => {
+      console.log("scale", p5Img.width / p.min(video.width, p.width));
+      setWatermarkImage(p5Img);
       setWatermarkState((prevState) => {
         return {
           ...prevState,
           fileData: file.data,
-          scale: img.width / p.min(video.width, p.width),
+          scale: p5Img.width / p.min(video.width, p.width),
         };
       });
-    } else {
-      setWatermarkState((prevState) => {
-        return {
-          ...prevState,
-          fileData: file.data,
-        };
-      });
-    }
-
-    // watermarkImage = p.createImg(file.data, "watermark image");
-    // watermarkImage.hide();
+    });
   });
 
   if (!watermarkState.fileData) {
