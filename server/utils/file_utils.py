@@ -9,6 +9,15 @@ def get_media_file_absolute_path(file_path):
     absolute_path = os.path.join(media_root, file_path)
     return absolute_path
 
+def get_media_file_relative_path(absolute_path : str):
+    media_docker_root = '/code/media/'
+    relative_path = absolute_path
+
+    if relative_path.startswith(media_docker_root):
+        relative_path = relative_path[len(media_docker_root):]
+    
+    return relative_path
+
 def change_extension(file_path, new_extension):
     s = file_path.split('.')[:-1]
     res = '.'.join(s)

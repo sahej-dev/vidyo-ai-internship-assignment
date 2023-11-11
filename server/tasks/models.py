@@ -19,5 +19,6 @@ class AudioExtractionTask(Task):
 class VideoWatermarkingTask(Task):
     watermarked_video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='watermark_tasks', null=True, blank=True)
     image_file = models.ImageField(upload_to='images/')
-    x_pos = models.DecimalField(max_digits=12, decimal_places=11)
-    y_pos = models.DecimalField(max_digits=12, decimal_places=11)
+    x_pos = models.DecimalField(max_digits=50, decimal_places=40)
+    y_pos = models.DecimalField(max_digits=50, decimal_places=40)
+    scale = models.DecimalField(max_digits=50, decimal_places=40, null=True, blank=True)

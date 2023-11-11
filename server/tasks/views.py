@@ -15,7 +15,8 @@ from resources.models import Video, Audio
 from resources.serializers import VideoSerializer, AudioSerailizer
 
 from .models import VideoWatermarkingTask, AudioExtractionTask
-from .serializers import VideoWatermarkingTaskSerializer, AudioExtractionTaskSerializer
+from .serializers import (VideoWatermarkingTaskSerializer, VideoWatermarkingTaskPkSerializer, AudioExtractionTaskSerializer)
+from .tasks import task_overlay_image
 
 from ffmpeg.watermarker import overlay_image
 from ffmpeg.audio_extractor import extract_audio
@@ -32,35 +33,28 @@ class VideoWatermarkerView(APIView):
     def get(self, request, format=None):
         tasks = VideoWatermarkingTask.objects.all()
         serializer = VideoWatermarkingTaskSerializer(tasks, many=True)
-        
-        task = tasks[0]
-
-        og_video_path = task.video.file.path
-        new_video_name, extension = os.path.splitext(og_video_path)
-        random_suffix = random_chars = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
-        new_video_path = f"{new_video_name}_watermarked_{random_suffix}{extension}"
-
-        print(task.image_file.path)
-        overlay_image(og_video_path, task.image_file.path, new_video_path, (task.x_pos, task.y_pos), scale=2)
-
+ 
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        serializer = VideoWatermarkingTaskSerializer(data=request.data)
+        serializer = VideoWatermarkingTaskPkSerializer(data=request.data)
+
         if serializer.is_valid():
             task = serializer.save()
 
             task.schedule_time = timezone.now()
             task.save()
+
             og_video_path = task.video.file.path
             new_video_name, extension = os.path.splitext(og_video_path)
-            random_suffix = random_chars = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
+            random_suffix  = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
             new_video_path = f"{new_video_name}_watermarked_{random_suffix}{extension}"
 
-            overlay_image(og_video_path, task.image_file.path, new_video_path, (task.x_pos, task.y_pos), scale=2)
-            return Response(VideoWatermarkingTaskSerializer(task).data)
+            task_overlay_image.delay(og_video_path, task.image_file.path, new_video_path, (task.x_pos, task.y_pos), task.id, scale=task.scale)
+            return Response(VideoWatermarkingTaskSerializer(task).data, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            print(serializer.errors)
+            return Response(request.data, status=status.HTTP_400_BAD_REQUEST)
     
 
 class VideoWatermarkerDetailView(APIView):

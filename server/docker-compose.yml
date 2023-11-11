@@ -10,12 +10,27 @@ services:
       - 8000:8000
     depends_on:
       - db
+
   db:
     image: postgres:13
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
       - "POSTGRES_HOST_AUTH_METHOD=trust"
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    command: celery -A sample_video_editor worker --loglevel=INFO
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - redis
 
 volumes:
   postgres_data:

@@ -14,7 +14,6 @@ def get_video_dimensions(video_path):
         result = subprocess.check_output(cmd, stderr=subprocess.STDOUT, text=True)
 
         width, height = map(int, result.strip().split('x'))
-        print("DIMS OF VIDEO ARE:")
         return (width, height)
 
     except subprocess.CalledProcessError as e:

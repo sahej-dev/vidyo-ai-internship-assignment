@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     # Libraries
     "rest_framework",
     "corsheaders",
+    'django_celery_results',
 
     # Local
     "accounts.apps.AccountsConfig",
@@ -153,3 +154,7 @@ CORS_ALLOWED_ORIGINS = (
     "http://localhost:3000",
     "http://localhost:8000",
 )
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'django-cache'
