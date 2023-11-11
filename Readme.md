@@ -1,6 +1,6 @@
 # Vidyo AI Recruitment Project Submission
 
-Thanks for the amazing assignment. It is a breath of fresh air over your usual first interview round.
+Thanks for the amazing assignment. I had quite a lot of fun doing it.
 
 ## Installation Instructions
 
@@ -38,7 +38,7 @@ docker-compose exec web python manage.py collectstatic # enter yes if prompted t
 docker-compose exec web python manage.py migrate
 ```
 
-Finally create an admin account to access the Django admin panel. Keep the credentials set here handy as they are required to login the aforementioned admin panel.
+Finally create an admin account to access the Django admin panel. Keep the credentials set here handy as they are required to log in the aforementioned admin panel.
 
 ```sh
 docker-compose exec web python manage.py createsuperuser
@@ -79,7 +79,7 @@ I have tried to optimize the size of the final docker image (~1.4GB -> ~650MB) b
 
 ### Frontend Tasks
 
-Becaue of the time constraints and as this was a backend assignment the frontend developed for this project is by no means the finest I have made. You can look at [my website](https://sahej.io) as a proof of that (I like to think it's fairly decent.)
+Becaue of the time constraints and as this was a backend assignment the frontend developed for this project is by no means the finest I have made. You can look at [my website](https://sahej.io) as a humble proof of that (I like to think it's fairly decent.)
 
 - A canvas based video player with a play/pause button.
 - I have used the [p5.js](https://p5js.org/) canvas library because I was already familiar with it from my early days of programming.
